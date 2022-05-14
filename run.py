@@ -106,37 +106,42 @@ def run(input_path, output_path, model_path, model_type="large", optimize=True):
 
     for ind, img_name in enumerate(img_names):
 
-        print("  processing {} ({}/{})".format(img_name, ind + 1, num_images))
-
-        # input
-
-        img = utils.read_image(img_name)
-        img_input = transform({"image": img})["image"]
-
-        # compute
-        with torch.no_grad():
-            sample = torch.from_numpy(img_input).to(device).unsqueeze(0)
-            if optimize==True and device == torch.device("cuda"):
-                sample = sample.to(memory_format=torch.channels_last)  
-                sample = sample.half()
-            prediction = model.forward(sample)
-            prediction = (
-                torch.nn.functional.interpolate(
-                    prediction.unsqueeze(1),
-                    size=img.shape[:2],
-                    mode="bicubic",
-                    align_corners=False,
-                )
-                .squeeze()
-                .cpu()
-                .numpy()
-            )
 
         # output
         filename = os.path.join(
             output_path, os.path.splitext(os.path.basename(img_name))[0]
         )
-        utils.write_depth(filename, prediction, bits=2)
+
+        if os.path.exists(filename + ".png"):
+            print("  processing {} ({}/{}) skipped: already exists".format(img_name, ind + 1, num_images))
+        else:
+            print("  processing {} ({}/{}) is new".format(img_name, ind + 1, num_images))
+
+            # input
+
+            img = utils.read_image(img_name)
+            img_input = transform({"image": img})["image"]
+
+            # compute
+            with torch.no_grad():
+                sample = torch.from_numpy(img_input).to(device).unsqueeze(0)
+                if optimize==True and device == torch.device("cuda"):
+                    sample = sample.to(memory_format=torch.channels_last)  
+                    sample = sample.half()
+                prediction = model.forward(sample)
+                prediction = (
+                    torch.nn.functional.interpolate(
+                        prediction.unsqueeze(1),
+                        size=img.shape[:2],
+                        mode="bicubic",
+                        align_corners=False,
+                    )
+                    .squeeze()
+                    .cpu()
+                    .numpy()
+                )
+
+            utils.write_depth(filename, prediction, bits=2)
 
     print("finished")
 
