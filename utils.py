@@ -1,5 +1,6 @@
 """Utils for monoDepth.
 """
+import os
 import sys
 import re
 import numpy as np
@@ -182,9 +183,21 @@ def write_depth(path, depth, bits=1):
     else:
         out = np.zeros(depth.shape, dtype=depth.type)
 
+    out = cv2.GaussianBlur(out,(5, 5),cv2.BORDER_DEFAULT)
+    out = out * 0.08 + max_val * 0.45
+
+
+
+
     if bits == 1:
-        cv2.imwrite(path + ".png", out.astype("uint8"))
+        out2 = out.astype("uint8")
+        mask2 = cv2.merge([out2 * 0, out2 * 0, out2])
+        cv2.imwrite(path + ".png", mask2)
+        os.system("mogrify -colors 255 " + path + ".png")
     elif bits == 2:
-        cv2.imwrite(path + ".png", out.astype("uint16"))
+        out2 = out.astype("uint16")
+        mask2 = cv2.merge([out2 * 0, out2 * 0, out2])
+        cv2.imwrite(path + ".png", mask2)
+        os.system("mogrify -colors 65536 " + path + ".png")
 
     return
