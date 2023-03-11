@@ -1,6 +1,7 @@
 const fs = require('fs');
-const http = require('http');
+const https = require('https');
 const { exec } = require('child_process');
+// const unzip = require('unzip'); 
 
 
 function createKey(t) {
@@ -62,46 +63,64 @@ function getShip(t, e, i) {
 //   }
 // );
 
-let server = 'http://ooi.moe/';
+const zipHost = "https://shizuru.piro.moe/kccp/";
+const zipFileName = "cache-2023-03-03.zip";
+// const zip = fs.createWriteStream(zipFileName);
+// const request = https.get(zipHost + zipFileName, function(response) {
+//   response.pipe(zip);
+//   file.on("finish", () => {
+//       file.close();
+//       console.log("Download Completed");
 
-
-let folderName = 'cache-2022-12-27';
-let rawdata = fs.readFileSync(folderName + '/cache/cached.json');
-let js = JSON.parse(rawdata);
-
-const ignoredIds = [3, 4, 5, 8, 315, 333, 335, 336, 337, 338, 339, 340, 341, 342, 482];
-
-
-
-
-
-
-fs.mkdirSync('./input', { recursive: true });
-Object.keys(js).forEach(function (key) {
-
-  if (key.startsWith('/kcs2/resources/ship/full')) {
-    let verStr = js[key]['version'];
-    verStr = "_v" + verStr.replace('?version=', '') + ".png";
-
-
-
-    let apiId = parseInt(key.replace('/kcs2/resources/ship/full/', '').replace('/kcs2/resources/ship/full_dmg/', '').substring(0,4));
-    if (apiId < 1500 && !ignoredIds.includes(apiId)) {
       
-      let destFileName = './input/' + key.replace('/kcs2/resources/ship/full/', '').replace('/kcs2/resources/ship/full_dmg/', '').replace('.png', verStr);
-      let srcFileName = "./" + folderName + "/cache" + key;
 
-      if (!fs.existsSync(destFileName)) {
-        fs.copyFile(srcFileName, destFileName, (err) => {
-          if (err) throw err;
+      let folderName = zipFileName.replace(".zip", "");
 
-          console.log(srcFileName);
-          console.log(destFileName);
-          console.log(' -- image was copied to destination');
-        });
-      }
-    }
+      // fs.createReadStream('./' + zipFileName).pipe(unzip.Extract({ path: './folderName' })); 
 
-  }
 
-});
+      let rawdata = fs.readFileSync(folderName + '/cache/cached.json');
+      let js = JSON.parse(rawdata);
+      
+      const ignoredIds = [3, 4, 5, 8, 315, 333, 335, 336, 337, 338, 339, 340, 341, 342, 482];
+      
+      
+      
+      
+      
+      
+      fs.mkdirSync('./input', { recursive: true });
+      Object.keys(js).forEach(function (key) {
+      
+        if (key.startsWith('/kcs2/resources/ship/full')) {
+          let verStr = js[key]['version'];
+          verStr = "_v" + verStr.replace('?version=', '') + ".png";
+      
+      
+      
+          let apiId = parseInt(key.replace('/kcs2/resources/ship/full/', '').replace('/kcs2/resources/ship/full_dmg/', '').substring(0,4));
+          if (apiId < 1500 && !ignoredIds.includes(apiId)) {
+            
+            let destFileName = './input/' + key.replace('/kcs2/resources/ship/full/', '').replace('/kcs2/resources/ship/full_dmg/', '').replace('.png', verStr);
+            let srcFileName = "./" + folderName + "/cache" + key;
+      
+            if (!fs.existsSync(destFileName)) {
+              fs.copyFile(srcFileName, destFileName, (err) => {
+                if (err) throw err;
+      
+                console.log(srcFileName);
+                console.log(destFileName);
+                console.log(' -- image was copied to destination');
+              });
+            }
+          }
+      
+        }
+      
+      });
+      
+
+//   });
+// });
+
+
